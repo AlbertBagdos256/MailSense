@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "MailSense",
+  "version": "1.0.0",
+  "description": "Detect and categorize emails using Gmail API and FastAPI backend",
+  "permissions": [
+    "identity",
+    "storage",
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8000/*"
+  ],
+
+  "oauth2": {
+    "client_id": "791633312875-ah48ufjvatn0qj6t6kv9o5rutebv3p9v.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.readonly"
+    ]
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "MailSense"
+  },
+  "content_scripts": [ {
+     "matches": ["https://mail.google.com/*"],
+     "js": ["content.js"],
+     "run_at": "document_idle"
+    }],
+  "icons": {}
+}
