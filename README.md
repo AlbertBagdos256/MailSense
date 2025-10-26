@@ -1,5 +1,5 @@
 # MailSense
-# 📧 EmailINsights
+# 📧 MailSense
 
 **EmailINsights** is a Google Chrome extension designed to automatically detect spam and categorize your incoming emails into meaningful groups — such as **Internships**, **Work**, **School**, and more.  
 Our goal is to make email management effortless using modern AI and machine learning techniques.
@@ -8,7 +8,7 @@ Our goal is to make email management effortless using modern AI and machine lear
 
 ## 🚀 Project Overview
 
-**Project Name:** EmailINsights  
+**Project Name:** MailSense 
 **Scope:** Email spam detection and intelligent email categorization  
 **Platforms:** Gmail and Outlook  
 **Audience:** Students, Developers, Professionals — anyone who uses email  
