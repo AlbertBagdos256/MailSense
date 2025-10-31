@@ -17,6 +17,7 @@ class EmailInput(BaseModel):
 async def receive_emails(emails: List[EmailInput]):
     EMAIL_STORAGE.extend(emails)
     print(f"Received {len(emails)} emails.")
+    print(emails[0])
     return {"message": f"Received {len(emails)} emails successfully."}
 
 # GET: return all stored emails
