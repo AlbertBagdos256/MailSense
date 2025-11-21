@@ -1,7 +1,7 @@
 # MailSense
 # 📧 MailSense
 
-**EmailINsights** is a Google Chrome extension designed to automatically detect spam and categorize your incoming emails into meaningful groups — such as **Internships**, **Work**, **School**, and more.  
+**MailSense** is a Google Chrome extension designed to automatically detect spam and categorize your incoming emails into meaningful groups — such as **Internships**, **Work**, **School**, and more.  
 Our goal is to make email management effortless using modern AI and machine learning techniques.
 
 ---
@@ -57,7 +57,7 @@ Categorizing and filtering emails intelligently.
 | **Browser Extension** | JavaScript, HTML, CSS |
 | **Backend API** | Python (Flask or FastAPI) |
 | **ML / AI Models** | PyTorch, NumPy |
-| **LLM Integration** | LLaMA (open-source LLM, fine-tuned for categorization) |
+| **LLM Integration** | LLaMA, OpenAI (open-source LLM, fine-tuned for categorization) |
 | **Cloud Infrastructure** | Google Cloud (for API hosting and storage) |
 | **Design Tools** | Figma (for UI), Lucidchart / draw.io (for system design diagrams) |
 
@@ -68,11 +68,12 @@ Categorizing and filtering emails intelligently.
 ### 🧱 System Design
 1. Chrome Extension captures email data (securely via API).
 2. Data sent to FastAPI backend.
-3. Backend runs ML model for:
-   - Spam detection
-   - Email categorization
-4. Categorization results returned to extension.
-5. Chrome extension displays categorized emails in the Gmail/Outlook interface.
+3. Backend runs:
+   - First check if the email is spam or not:
+   - If it is spam run the spam detection model and categorize it as spam
+   - If not spam run email categorization LLM model and categorize it
+5. Categorization results returned to extension.
+6. Chrome extension displays categorized emails in the Gmail/Outlook interface.
 
 ### 🎨 Figma Design
 The Figma prototype includes:
@@ -99,18 +100,6 @@ The Figma prototype includes:
 
 ---
 
-## 🧍‍♀️ Team & Task Assignment
-
-| Task | Assigned To |
-|------|--------------|
-| Frontend (Chrome Extension) | *To be assigned via GitHub* |
-| Backend (FastAPI / Flask) | *To be assigned via GitHub* |
-| ML Model Development | *To be assigned via GitHub* |
-| Integration & Deployment | *To be assigned via GitHub* |
-
-*(All collaboration and task division will be managed through GitHub Projects.)*
-
----
 
 ## ⏰ Project Timeline (High-Level)
 
@@ -143,9 +132,9 @@ The Figma prototype includes:
 
 ---
 
-## 💡 Why EmailINsights?
+## 💡 Why MailSense?
 
-Unlike ChatGPT or general AI assistants, **EmailINsights** is designed **specifically for your inbox** —  
+Unlike ChatGPT or general AI assistants, **MailSense** is designed **specifically for your inbox** —  
 to help you organize, understand, and manage your emails efficiently.  
 
 We’re **built for email categorization first**, not just conversation.
@@ -167,7 +156,7 @@ Please open an issue or pull request to discuss proposed changes.
 
 ## 🛠️ Authors & Maintainers
 
-Project by **Team EmailINsights**  
+Project by **Team MailSense**  
 - GitHub Organization: *To be added*  
 - Contact: *emailinsights.project@gmail.com*
 
