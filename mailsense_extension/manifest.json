@@ -3,6 +3,7 @@
   "name": "MailSense",
   "version": "1.0.0",
   "description": "Detect and categorize emails using Gmail API and FastAPI backend",
+  "key":"MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAmrHHW/IZx+3cfNRw4Mk3qwDkwpIprnaREmkJZZMWtSEOHlEFGUvbryh5brUMU8qg5Al0NPcjePI6bKNbzQGrzj0VOWQDBNeGNt4/YDJxcDcCPLmhg/vOpM4577P/mKf+WoTHEulRw3hBD/kvWAzePVF6Liu5yVgHQoTX88bM8aiyTK9/Nc5nJK25xOKf2HgWNnCAKzKYV6aQn5Hi8SntI58uGE8s278hYMEXR5FaWFJOIzqs98Mo0glaUg/nVHbJIlVko7wtR8qjcn2oruspNjkmetsvFmtZPKv4geSWt/sBtbAgVbhEroRXOTM5oSyc87flxdeJ34ir/piOitQ8cQIDAQAB",
   "permissions": [
     "identity",
     "storage",
@@ -14,6 +15,7 @@
   ],
 
   "oauth2": {
+    
     "client_id": "791633312875-ah48ufjvatn0qj6t6kv9o5rutebv3p9v.apps.googleusercontent.com",
     "scopes": [
       "https://www.googleapis.com/auth/gmail.readonly"
@@ -34,3 +36,5 @@
     }],
   "icons": {}
 }
+
+
