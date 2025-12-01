@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 from typing import List
 from utils.spam_detector import predict_emails
-from backend_api.utils.email_categorizer import EmailCategorizer
+from utils.email_categorizer import EmailCategorizer
 
 router = APIRouter()
 categorizer = EmailCategorizer(max_clusters=20)  # Initialize once
@@ -79,9 +79,10 @@ async def receive_emails(emails: List[EmailInput]):
         })
 
     print("\n========== END PROCESS ==========\n")
-
+    
     return {
-        "message": "Emails processed",
-        "spam_results": spam_results,
-        "categorized_results": categorized_results
+    "message": "Emails processed",
+    "spam_results": spam_results,
+    "categorized_results": categorized_results,
+    "cluster_version": categorizer.cluster_engine.cluster_version
     }

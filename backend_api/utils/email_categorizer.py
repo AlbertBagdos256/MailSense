@@ -33,6 +33,7 @@ class EmailCategorizer:
         self.embeddings = []  # temporary storage for latest batch
         self.cluster_engine = EmailClusterEngine(max_clusters=max_clusters)
         self.cluster_names = {} 
+        
     def add_emails(self, emails: list):
         """
         Add new non-spam emails.
@@ -43,9 +44,10 @@ class EmailCategorizer:
         # Compute embeddings
         self.embeddings = self.compute_embeddings(texts)
         # Delegate clustering to the cluster engine
-        reclustered = self.cluster_engine.add_items(emails, self.embeddings)
+        recluster_version = self.cluster_engine.add_items(emails, self.embeddings)
         # If cluster structure changed → regenerate cluster names
-        if reclustered:
+        if recluster_version:
+            self.cluster_names = {}
             self.generate_cluster_categories()
     
     def compute_embeddings(self, texts: list):
@@ -92,6 +94,10 @@ class EmailCategorizer:
                You are an AI that creates clean, short category names.
                Below are up to 5 example emails from a cluster. 
                Give ONE short unified category name.
+               Please do not be too specific when it comes to assigning the category.
+               These sample of 5 emails just small portion, so I 
+               want you to give more generelized but clear category which 
+               will desribe the type of emails it has precisely!
                Do NOT explain anything.
                Output ONLY the category name.
                Emails: {examples_text}
@@ -105,8 +111,8 @@ class EmailCategorizer:
             # FIX: new SDK uses .message.content
             label = response.choices[0].message.content.strip()
             cluster_names[cid] = label
-            # assign only once
-            self.cluster_names = cluster_names
+        # assign only once
+        self.cluster_names = cluster_names
 
 
     
@@ -126,6 +132,8 @@ class EmailClusterEngine:
         self.cluster_labels = []  # cluster index per email
         self.cluster_centers = None
         self.new_email_counter = 0
+        self.cluster_version = 0
+
     
     def add_items(self, emails, embeddings):
         """
@@ -148,8 +156,11 @@ class EmailClusterEngine:
             self.new_email_counter += 1
 
         # Recluster if threshold reached
-        if self.cluster_centers is None or self.new_email_counter >= self.recluster_threshold:
+        if self.cluster_centers is None:
             reclustered = self.re_cluster()
+        elif self.new_email_counter >= self.recluster_threshold:
+            reclustered = self.re_cluster()
+
         
         return reclustered  # will return either true or false
 
@@ -162,15 +173,16 @@ class EmailClusterEngine:
 
         X = array(self.embeddings)
         n_clusters = min(self.max_clusters, len(self.embeddings))
-        kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init="auto")
         labels = kmeans.fit_predict(X)
 
         self.cluster_labels = labels.tolist()
         self.cluster_centers = kmeans.cluster_centers_
         self.new_email_counter = 0
+        self.cluster_version += 1
         print(f"Re-clustered {len(self.embeddings)} emails into {n_clusters} clusters.")
         
-        return True # just a flag so we now when reclusterization happened
+        return self.cluster_version
 
     def assign_to_cluster(self, emb):
         """
