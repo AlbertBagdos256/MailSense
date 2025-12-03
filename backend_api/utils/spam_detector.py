@@ -1,9 +1,11 @@
 from pydantic import BaseModel
 from typing import List
 from huggingface_hub import InferenceClient
+from dotenv import load_dotenv
 import os
 
-HF_API_KEY = ""
+load_dotenv()
+HF_API_KEY = os.getenv("HF_API_KEY")
 client = InferenceClient(api_key=HF_API_KEY)
 
 class EmailInput(BaseModel):
