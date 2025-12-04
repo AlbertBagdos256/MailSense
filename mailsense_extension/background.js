@@ -297,11 +297,20 @@ chrome.runtime.onMessage.addListener((msg) => {
   if (!msg) return;
   if (msg.action === "fetchEmails") {
     fetchAndProcessEmails(false).catch(console.error);
-     assignLabelsToAllEmails().catch(console.error);
-  } 
+    assignLabelsToAllEmails().catch(console.error);
+  }
   if (msg.action === "deleteExtensionLabels") getAuthToken().then(token => deleteAllExtensionLabels(token)).catch(console.error);
 });
 
 chrome.action.onClicked.addListener(() => {
   console.log("Extension clicked — use messages to trigger fetch/label");
+});
+
+// Listen for messages from content script
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "openDashboard") {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("dashboard/index.html")
+    });
+  }
 });

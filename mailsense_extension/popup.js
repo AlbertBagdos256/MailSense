@@ -1,6 +1,6 @@
 // DOM Elements
 let authorizeBtn, statusBadge, statusDot, statusText;
-let spamCountEl, categoryCountEl, processedCountEl;
+let categoryCountEl, processedCountEl;
 let categoriesList, loadingOverlay, settingsBtn;
 
 // State
@@ -20,7 +20,6 @@ function initializeElements() {
   statusBadge = document.getElementById("statusBadge");
   statusDot = statusBadge?.querySelector(".status-dot");
   statusText = statusBadge?.querySelector(".status-text");
-  spamCountEl = document.getElementById("spamCount");
   categoryCountEl = document.getElementById("categoryCount");
   processedCountEl = document.getElementById("processedCount");
   categoriesList = document.getElementById("categoriesList");
@@ -79,7 +78,6 @@ async function updateStats() {
     const uniqueCategories = new Set(categorizedEmails.map(e => e.category));
     const totalProcessed = spamResults.length + categorizedEmails.length;
 
-    if (spamCountEl) spamCountEl.textContent = spamResults.length;
     if (categoryCountEl) categoryCountEl.textContent = uniqueCategories.size;
     if (processedCountEl) processedCountEl.textContent = totalProcessed;
   } catch (error) {
@@ -109,10 +107,10 @@ async function updateCategories() {
       categoryGroups[cat].push(email);
     });
 
-    // Create category items
+    // Create category items - SHOW ALL instead of top 5
     const categoriesHTML = Object.entries(categoryGroups)
       .sort((a, b) => b[1].length - a[1].length)
-      .slice(0, 5) // Show top 5
+      // Removed .slice(0, 5) to show all categories
       .map(([category, emails]) => `
         <div class="category-item" data-category="${category}">
           <span class="category-name">${escapeHtml(category)}</span>

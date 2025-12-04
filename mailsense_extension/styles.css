@@ -136,7 +136,7 @@ body {
 .stats-section {
     padding: var(--spacing-md);
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--spacing-sm);
     background: var(--surface);
 }
@@ -227,12 +227,12 @@ body {
     cursor: not-allowed;
 }
 
-/* Categories Section - SHORTENED */
+/* Categories Section */
 .categories-section {
     padding: 0 var(--spacing-md) var(--spacing-sm);
     flex: 1;
     overflow-y: auto;
-    max-height: 8rem;
+    max-height: 16rem;
 }
 
 .section-title {
@@ -248,7 +248,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-xs);
-    max-height: 6rem;
+    max-height: 14rem;
     overflow-y: auto;
 }
 
