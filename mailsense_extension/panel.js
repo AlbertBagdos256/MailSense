@@ -1,9 +1,3 @@
-/**
- * panel.js – MailSense panel
- * -----------------------------------
- * Spam toggle + category buttons using Gmail labels
- */
-
 let spamFilterActive = false; // toggle state
 
 const injectMailSensePanel = async () => {
@@ -82,9 +76,7 @@ const injectMailSensePanel = async () => {
   await renderCategoryButtons(catContainer);
 };
 
-/* ---------------------------
-   RENDER CATEGORY BUTTONS (label links)
----------------------------- */
+// Render category buttons
 async function renderCategoryButtons(container) {
   const stored = await chrome.storage.local.get("categorizedEmails");
   const categorizedEmails = stored.categorizedEmails || [];
@@ -116,7 +108,6 @@ async function renderCategoryButtons(container) {
       if (category === "All") {
         window.location.href = "https://mail.google.com/mail/u/0/#inbox";
       } else {
-        // Replace spaces with + for Gmail label link
         const labelQuery = category.replace(/\s+/g, "+");
         window.location.href = `https://mail.google.com/mail/u/0/#label/${labelQuery}`;
       }
@@ -126,9 +117,7 @@ async function renderCategoryButtons(container) {
   });
 }
 
-/* ---------------------------
-   SPAM TOGGLE
----------------------------- */
+// Spam toggle
 async function toggleSpamFilter(button) {
   const stored = await chrome.storage.local.get("spamResults");
   const spamResults = stored.spamResults || [];
@@ -156,9 +145,7 @@ function applySpamFilter(spamResults) {
   console.log("🔍 Spam filter ON");
 }
 
-/* ---------------------------
-   UTIL
----------------------------- */
+// Util
 function resetAllRows() {
   document.querySelectorAll("tr.zA").forEach(row => {
     row.style.display = "";
@@ -213,9 +200,7 @@ function styleCategoryButton(btn, gradient) {
   };
 }
 
-/* ---------------------------
-   INIT OBSERVER
----------------------------- */
+// Init observer
 const observer = new MutationObserver(() => {
   if (document.querySelector("tr.zA")) {
     injectMailSensePanel();

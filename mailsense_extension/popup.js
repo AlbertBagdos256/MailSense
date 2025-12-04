@@ -107,10 +107,9 @@ async function updateCategories() {
       categoryGroups[cat].push(email);
     });
 
-    // Create category items - SHOW ALL instead of top 5
+    // Create category items 
     const categoriesHTML = Object.entries(categoryGroups)
       .sort((a, b) => b[1].length - a[1].length)
-      // Removed .slice(0, 5) to show all categories
       .map(([category, emails]) => `
         <div class="category-item" data-category="${category}">
           <span class="category-name">${escapeHtml(category)}</span>
