@@ -1,13 +1,77 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>MailSense</title>
-  </head>
-  <body>
-    <h2>MailSense</h2>
-    <button id="authorize">Authorize Gmail</button>
-    <button id="fetchEmails">Fetch Emails</button>
+<html lang="en">
 
-    <script src="popup.js"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MailSense</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div class="popup-container">
+    <!-- Header -->
+    <header class="popup-header">
+      <div class="logo-container">
+        <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"
+            fill="currentColor" />
+          <circle cx="18" cy="8" r="4" fill="#4285F4" />
+        </svg>
+        <h1 class="logo-text">MailSense</h1>
+      </div>
+      <div class="status-badge" id="statusBadge">
+        <span class="status-dot"></span>
+        <span class="status-text">Checking...</span>
+      </div>
+    </header>
+
+    <!-- Stats Section -->
+    <!-- Stats Section -->
+    <section class="stats-section">
+      <div class="stat-card">
+        <div class="stat-icon category-icon">📁</div>
+        <div class="stat-content">
+          <div class="stat-value" id="categoryCount">0</div>
+          <div class="stat-label">Categories</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon email-icon">✉️</div>
+        <div class="stat-content">
+          <div class="stat-value" id="processedCount">0</div>
+          <div class="stat-label">Processed</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Actions -->
+    <section class="actions-section">
+      <button id="authorize" class="btn btn-primary">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        Authorize Gmail
+      </button>
+    </section>
+
+    <!-- Recent Categories -->
+    <section class="categories-section">
+      <h3 class="section-title">Your Categories</h3>
+      <div class="categories-list" id="categoriesList">
+        <div class="empty-state">No categories yet. Emails are processed automatically!</div>
+      </div>
+    </section>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+      <p class="loading-text">Processing emails...</p>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+
 </html>
