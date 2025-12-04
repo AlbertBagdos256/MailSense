@@ -1,10 +1,3 @@
-/* =============================
-   background.js — MailSense (Optimized)
-   - Gmail API comms
-   - Backend comms
-   - Label creation, caching, assignment, deletion
-============================= */
-
 const LAST_EMAIL_KEY = "lastProcessedEmailId";
 const SPAM_KEY = "spamResults";
 const CATEGORY_KEY = "categorizedEmails";
@@ -14,9 +7,7 @@ const LABELED_EMAILS_KEY = "labeledEmails";
 
 let isFetching = false;
 
-/* =============================
-   AUTH
-============================= */
+// Auth
 async function getAuthToken() {
   return new Promise((resolve, reject) => {
     chrome.identity.getAuthToken({ interactive: true }, (token) => {
@@ -26,9 +17,7 @@ async function getAuthToken() {
   });
 }
 
-/* =============================
-   GMAIL HELPERS
-============================= */
+// Gmail helpers
 async function fetchMessageList(token) {
   const resp = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages", {
     headers: { Authorization: `Bearer ${token}` }
@@ -53,9 +42,7 @@ async function fetchFullMessage(token, id) {
   }
 }
 
-/* =============================
-   UTILS
-============================= */
+// Utils
 async function fetchWithConcurrency(list, fn, limit = 5) {
   const results = [];
   for (let i = 0; i < list.length; i += limit) {
@@ -72,9 +59,7 @@ function getNewMessages(messages, lastId, initial) {
   return index >= 0 ? messages.slice(0, index) : messages;
 }
 
-/* =============================
-   BACKEND COMMUNICATION
-============================= */
+// Backend communication
 async function sendToBackend(emails) {
   if (!emails.length) return { spam: [], categories: [], clusterVersion: null };
   const response = await fetch("http://127.0.0.1:8000/api/emails", {
@@ -90,18 +75,14 @@ async function sendToBackend(emails) {
   };
 }
 
-/* =============================
-   STORAGE INIT
-============================= */
+// Storage init
 async function ensureLabelMap() {
   const stored = await chrome.storage.local.get(CATEGORY_LABEL_MAP_KEY);
   if (!stored[CATEGORY_LABEL_MAP_KEY]) await chrome.storage.local.set({ [CATEGORY_LABEL_MAP_KEY]: {} });
 }
 ensureLabelMap().catch(console.error);
 
-/* =============================
-   MAIN FETCH & PROCESS
-============================= */
+// Main fetch & process
 async function fetchAndProcessEmails(initial = false) {
   if (isFetching) {
     console.log("⛔ Fetch skipped — already running");
@@ -172,9 +153,7 @@ async function fetchAndProcessEmails(initial = false) {
   }
 }
 
-/* =============================
-   LABEL MANAGEMENT
-============================= */
+// Label management
 async function getOrCreateLabel(category, token) {
   const name = String(category);
   const stored = await chrome.storage.local.get(CATEGORY_LABEL_MAP_KEY);
@@ -219,9 +198,7 @@ async function deleteAllExtensionLabels(token) {
   await chrome.storage.local.set({ [CATEGORY_LABEL_MAP_KEY]: {} });
 }
 
-/* =============================
-   APPLY LABELS WITH RETRY & BATCH
-============================= */
+// Apply labels with retry and batch
 async function applyLabelToEmailWithRetry(messageId, labelId, token, maxRetries = 3) {
   let attempt = 0, backoff = 500;
   while (attempt <= maxRetries) {
@@ -253,9 +230,7 @@ async function applyLabelsBatch(emailLabelPairs, token, concurrency = 2) {
   }
 }
 
-/* =============================
-   ASSIGN LABELS TO NEW EMAILS ONLY
-============================= */
+// Assigning labels to emails
 async function assignLabelsToAllEmails() {
   try {
     const token = await getAuthToken();
@@ -288,20 +263,27 @@ async function assignLabelsToAllEmails() {
   }
 }
 
-/* =============================
-   EVENTS
-============================= */
+// Events
 chrome.runtime.onInstalled.addListener(() => fetchAndProcessEmails(true));
 
 chrome.runtime.onMessage.addListener((msg) => {
   if (!msg) return;
   if (msg.action === "fetchEmails") {
     fetchAndProcessEmails(false).catch(console.error);
-     assignLabelsToAllEmails().catch(console.error);
-  } 
+    assignLabelsToAllEmails().catch(console.error);
+  }
   if (msg.action === "deleteExtensionLabels") getAuthToken().then(token => deleteAllExtensionLabels(token)).catch(console.error);
 });
 
 chrome.action.onClicked.addListener(() => {
   console.log("Extension clicked — use messages to trigger fetch/label");
+});
+
+// Listen for messages from content script
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "openDashboard") {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("dashboard/index.html")
+    });
+  }
 });
