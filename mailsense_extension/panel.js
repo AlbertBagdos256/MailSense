@@ -1,4 +1,4 @@
-let spamFilterActive = false; // toggle state
+let spamFilterActive = false;
 
 const injectMailSensePanel = async () => {
   if (document.getElementById("mailsense-panel")) return;
@@ -17,21 +17,21 @@ const injectMailSensePanel = async () => {
   panel.style.boxShadow = "0 0.25rem 1rem rgba(0, 0, 0, 0.08)";
 
   const title = document.createElement("h3");
-  title.textContent = "📧 MailSense Filters";
+  title.textContent = "MailSense Filters";
   title.style.margin = "0 0 0.75rem 0";
-  title.style.fontSize = "1.125rem";
   title.style.fontSize = "1.25rem";
   title.style.fontWeight = "600";
   title.style.color = "#2c3e50";
   title.style.letterSpacing = "0.02rem";
   panel.appendChild(title);
 
-  /* --- SPAM BUTTON --- */
+  /* --- BUTTON CONTAINER --- */
   const buttonContainer = document.createElement("div");
   buttonContainer.style.display = "flex";
   buttonContainer.style.gap = "0.5rem";
   buttonContainer.style.marginBottom = "0.5rem";
 
+  /* --- SPAM BUTTON --- */
   const spamBtn = document.createElement("button");
   spamBtn.id = "spam-toggle-btn";
   spamBtn.textContent = "🛡️ Show Spam";
@@ -39,15 +39,20 @@ const injectMailSensePanel = async () => {
   spamBtn.onclick = async () => toggleSpamFilter(spamBtn);
   buttonContainer.appendChild(spamBtn);
 
-  /* --- STATS BUTTON --- */
+  /* --- DASHBOARD BUTTON --- */
   const statsBtn = document.createElement("button");
   statsBtn.id = "stats-btn";
-  statsBtn.textContent = "📊 Stats";
-  styleSpamButton(statsBtn);
+  statsBtn.textContent = "📊 Dashboard";
+  styleStatsButton(statsBtn);
   statsBtn.onclick = () => {
-    chrome.runtime.sendMessage({
-      action: "openDashboard"
-    });
+    // Import dashboard module and toggle it
+    import(chrome.runtime.getURL('dashboard.js'))
+      .then(module => {
+        module.toggleDashboard();
+      })
+      .catch(err => {
+        console.error("Failed to load dashboard:", err);
+      });
   };
   buttonContainer.appendChild(statsBtn);
 
@@ -75,7 +80,7 @@ const injectMailSensePanel = async () => {
   await renderCategoryButtons(catContainer);
 };
 
-// Render cateogry buttons
+// Render category buttons
 async function renderCategoryButtons(container) {
   const stored = await chrome.storage.local.get("categorizedEmails");
   const categorizedEmails = stored.categorizedEmails || [];
@@ -173,6 +178,30 @@ function styleSpamButton(btn) {
   btn.onmouseleave = () => {
     btn.style.transform = "translateY(0)";
     btn.style.boxShadow = "0 0.125rem 0.5rem rgba(220, 53, 69, 0.15)";
+  };
+}
+
+function styleStatsButton(btn) {
+  btn.style.flex = "1";
+  btn.style.padding = "0.625rem 1rem";
+  btn.style.border = "none";
+  btn.style.borderRadius = "0.5rem";
+  btn.style.background = "linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)";
+  btn.style.color = "#0d6efd";
+  btn.style.fontSize = "0.875rem";
+  btn.style.fontWeight = "600";
+  btn.style.cursor = "pointer";
+  btn.style.transition = "all 0.3s ease";
+  btn.style.boxShadow = "0 0.125rem 0.5rem rgba(13, 110, 253, 0.15)";
+
+  btn.onmouseenter = () => {
+    btn.style.transform = "translateY(-0.125rem)";
+    btn.style.boxShadow = "0 0.25rem 0.75rem rgba(13, 110, 253, 0.25)";
+  };
+
+  btn.onmouseleave = () => {
+    btn.style.transform = "translateY(0)";
+    btn.style.boxShadow = "0 0.125rem 0.5rem rgba(13, 110, 253, 0.15)";
   };
 }
 

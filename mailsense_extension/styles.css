@@ -35,6 +35,26 @@
     box-sizing: border-box;
 }
 
+
+/* Custom Gmail label styling */
+.au {
+  background-color: #933c4e;   /* light brown */
+  border-radius: 0px !important;
+  padding: 0px 8px !important;             /* clean rectangular spacing */
+  border-radius: 3px !important;           /* slight rounding */
+  font-weight: 600 !important;             /* semi-bold */
+  line-height: 1.4 !important;             /* fixes vertical alignment */
+  display: inline-block !important;        /* ensures rectangle shape */
+  border: none !important;    /* subtle darker outline */
+  vertical-align: middle !important;
+}
+
+.av {
+ font-size: 12px !important;              /* readable text */
+ color: #ffffff !important;               /* white text */
+}
+
+
 body {
     font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     font-size: 0.875rem;
@@ -348,3 +368,5 @@ body {
 ::-webkit-scrollbar-thumb:hover {
     background: var(--text-tertiary);
 }
+
+

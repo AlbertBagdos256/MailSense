@@ -7,7 +7,7 @@ const LABELED_EMAILS_KEY = "labeledEmails";
 
 let isFetching = false;
 
-// Auth
+// --- Auth ---
 async function getAuthToken() {
   return new Promise((resolve, reject) => {
     chrome.identity.getAuthToken({ interactive: true }, (token) => {
@@ -17,7 +17,7 @@ async function getAuthToken() {
   });
 }
 
-// Gmail helpers
+// --- Gmail helpers ---
 async function fetchMessageList(token) {
   const resp = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages", {
     headers: { Authorization: `Bearer ${token}` }
@@ -42,7 +42,7 @@ async function fetchFullMessage(token, id) {
   }
 }
 
-// Utils
+// --- Utils ---
 async function fetchWithConcurrency(list, fn, limit = 5) {
   const results = [];
   for (let i = 0; i < list.length; i += limit) {
@@ -59,7 +59,7 @@ function getNewMessages(messages, lastId, initial) {
   return index >= 0 ? messages.slice(0, index) : messages;
 }
 
-// Backend communication
+// --- Backend communication ---
 async function sendToBackend(emails) {
   if (!emails.length) return { spam: [], categories: [], clusterVersion: null };
   const response = await fetch("http://127.0.0.1:8000/api/emails", {
@@ -75,14 +75,14 @@ async function sendToBackend(emails) {
   };
 }
 
-// Storage init
+// --- Storage init ---
 async function ensureLabelMap() {
   const stored = await chrome.storage.local.get(CATEGORY_LABEL_MAP_KEY);
   if (!stored[CATEGORY_LABEL_MAP_KEY]) await chrome.storage.local.set({ [CATEGORY_LABEL_MAP_KEY]: {} });
 }
 ensureLabelMap().catch(console.error);
 
-// Main fetch & process
+// --- Main fetch & process ---
 async function fetchAndProcessEmails(initial = false) {
   if (isFetching) {
     console.log("⛔ Fetch skipped — already running");
@@ -93,7 +93,15 @@ async function fetchAndProcessEmails(initial = false) {
   try {
     const token = await getAuthToken();
     const messages = await fetchMessageList(token);
-    const stored = await chrome.storage.local.get([LAST_EMAIL_KEY, SPAM_KEY, CATEGORY_KEY, CLUSTER_VERSION_KEY, CATEGORY_LABEL_MAP_KEY, LABELED_EMAILS_KEY]);
+    const stored = await chrome.storage.local.get([
+      LAST_EMAIL_KEY, 
+      SPAM_KEY, 
+      CATEGORY_KEY, 
+      CLUSTER_VERSION_KEY, 
+      CATEGORY_LABEL_MAP_KEY, 
+      LABELED_EMAILS_KEY
+    ]);
+    
     const lastId = stored[LAST_EMAIL_KEY] || null;
     const existingSpam = stored[SPAM_KEY] || [];
     const existingCategories = stored[CATEGORY_KEY] || [];
@@ -111,7 +119,7 @@ async function fetchAndProcessEmails(initial = false) {
 
     console.log("🔎 spam:", spam.length, " 🏷 categories:", categories.length, " clusterVersion:", clusterVersion);
 
-    // Handle cluster version changes
+    // --- Handle cluster version changes ---
     if (clusterVersion && clusterVersion !== storedClusterVersion) {
       console.log("Cluster version changed — clearing previous categories & labels");
       await chrome.storage.local.set({
@@ -125,24 +133,30 @@ async function fetchAndProcessEmails(initial = false) {
       await chrome.storage.local.set({ [CLUSTER_VERSION_KEY]: clusterVersion });
     }
 
-    // Merge spam
+    // --- Batch storage updates ---
+    const storageUpdates = {};
+    
     if (spam.length) {
       const mergedSpam = [...existingSpam, ...spam.filter(e => !existingSpam.some(ex => ex.id === e.id))];
-      await chrome.storage.local.set({ [SPAM_KEY]: mergedSpam });
-      console.log(`Stored ${mergedSpam.length} spam results`);
+      storageUpdates[SPAM_KEY] = mergedSpam;
+      console.log(`Storing ${mergedSpam.length} spam results`);
     }
 
-    // Merge categories
     if (categories.length) {
       const mergedCat = [...existingCategories, ...categories.filter(e => !existingCategories.some(ex => ex.id === e.id))];
-      await chrome.storage.local.set({ [CATEGORY_KEY]: mergedCat });
-      console.log(`Stored ${mergedCat.length} categorized emails`);
+      storageUpdates[CATEGORY_KEY] = mergedCat;
+      console.log(`Storing ${mergedCat.length} categorized emails`);
     }
 
-    // Update last processed ID
-    if (messages.length) await chrome.storage.local.set({ [LAST_EMAIL_KEY]: messages[0].id });
+    if (messages.length) {
+      storageUpdates[LAST_EMAIL_KEY] = messages[0].id;
+    }
 
-    // Assign labels only to NEW emails
+    if (Object.keys(storageUpdates).length) {
+      await chrome.storage.local.set(storageUpdates);
+    }
+
+    // --- Assign labels only to NEW emails ---
     await assignLabelsToAllEmails();
 
   } catch (err) {
@@ -153,7 +167,7 @@ async function fetchAndProcessEmails(initial = false) {
   }
 }
 
-// Label management
+// --- Label management ---
 async function getOrCreateLabel(category, token) {
   const name = String(category);
   const stored = await chrome.storage.local.get(CATEGORY_LABEL_MAP_KEY);
@@ -170,7 +184,9 @@ async function getOrCreateLabel(category, token) {
   if (createResp.ok) {
     labelId = (await createResp.json()).id;
   } else {
-    const listResp = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/labels", { headers: { Authorization: `Bearer ${token}` } });
+    const listResp = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/labels", { 
+      headers: { Authorization: `Bearer ${token}` } 
+    });
     const found = (await listResp.json()).labels?.find(l => l.name === name);
     if (found) labelId = found.id;
     else throw new Error(`Failed to create label "${name}"`);
@@ -182,7 +198,10 @@ async function getOrCreateLabel(category, token) {
 }
 
 async function deleteLabel(labelId, token) {
-  await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/labels/${labelId}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+  await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/labels/${labelId}`, { 
+    method: "DELETE", 
+    headers: { Authorization: `Bearer ${token}` } 
+  });
 }
 
 async function deleteAllExtensionLabels(token) {
@@ -191,14 +210,21 @@ async function deleteAllExtensionLabels(token) {
   const labelNames = Object.keys(map);
   if (!labelNames.length) return;
 
-  const listResp = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/labels", { headers: { Authorization: `Bearer ${token}` } });
+  const listResp = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/labels", { 
+    headers: { Authorization: `Bearer ${token}` } 
+  });
   const labels = (await listResp.json()).labels || [];
-  for (const lbl of labels) if (labelNames.includes(lbl.name)) await deleteLabel(lbl.id, token);
+  
+  for (const lbl of labels) {
+    if (labelNames.includes(lbl.name)) {
+      await deleteLabel(lbl.id, token);
+    }
+  }
 
   await chrome.storage.local.set({ [CATEGORY_LABEL_MAP_KEY]: {} });
 }
 
-// Apply labels with retry and batch
+// --- Apply labels with retry and batch ---
 async function applyLabelToEmailWithRetry(messageId, labelId, token, maxRetries = 3) {
   let attempt = 0, backoff = 500;
   while (attempt <= maxRetries) {
@@ -211,7 +237,11 @@ async function applyLabelToEmailWithRetry(messageId, labelId, token, maxRetries 
       });
       if (modResp.ok) return true;
       const text = await modResp.text();
-      if (modResp.status === 429 || text.includes("rateLimitExceeded")) { await new Promise(r => setTimeout(r, backoff)); backoff *= 2; continue; }
+      if (modResp.status === 429 || text.includes("rateLimitExceeded")) { 
+        await new Promise(r => setTimeout(r, backoff)); 
+        backoff *= 2; 
+        continue; 
+      }
       throw new Error(text || `Status ${modResp.status}`);
     } catch (err) {
       if (attempt > maxRetries) throw err;
@@ -222,15 +252,23 @@ async function applyLabelToEmailWithRetry(messageId, labelId, token, maxRetries 
   throw new Error("Max retries exceeded");
 }
 
-async function applyLabelsBatch(emailLabelPairs, token, concurrency = 2) {
+async function applyLabelsBatch(emailLabelPairs, token, concurrency = 10) {
+  const delay = (ms) => new Promise(r => setTimeout(r, ms));
+  
   for (let i = 0; i < emailLabelPairs.length; i += concurrency) {
     const chunk = emailLabelPairs.slice(i, i + concurrency);
-    await Promise.all(chunk.map(p => applyLabelToEmailWithRetry(p.id, p.labelId, token).catch(console.error)));
-    await new Promise(r => setTimeout(r, 200));
+    await Promise.all(
+      chunk.map(p => applyLabelToEmailWithRetry(p.id, p.labelId, token).catch(console.error))
+    );
+    
+    // Only delay if there are more chunks
+    if (i + concurrency < emailLabelPairs.length) {
+      await delay(100);
+    }
   }
 }
 
-// Assigning labels to emails
+// --- Assigning labels to emails ---
 async function assignLabelsToAllEmails() {
   try {
     const token = await getAuthToken();
@@ -243,47 +281,77 @@ async function assignLabelsToAllEmails() {
 
     // Only new emails
     const newEmails = categorized.filter(e => !alreadyLabeled.has(e.id));
-    if (!newEmails.length) return;
+    if (!newEmails.length) {
+      console.log("No new emails to label");
+      return;
+    }
 
     const categoryLabelMap = { ...labelMapCache };
     const uniqueCategories = [...new Set(newEmails.map(e => e.category))];
-    for (const cat of uniqueCategories) if (!categoryLabelMap[cat]) categoryLabelMap[cat] = await getOrCreateLabel(cat, token);
+    
+    // Create missing labels in parallel (OPTIMIZED)
+    const missingCategories = uniqueCategories.filter(cat => !categoryLabelMap[cat]);
+    if (missingCategories.length) {
+      console.log(`Creating ${missingCategories.length} new labels in parallel...`);
+      const labelPromises = missingCategories.map(cat => 
+        getOrCreateLabel(cat, token)
+          .then(labelId => ({ cat, labelId }))
+          .catch(err => {
+            console.error(`Failed to create label for "${cat}":`, err);
+            return null;
+          })
+      );
+      const results = await Promise.all(labelPromises);
+      results.forEach(result => {
+        if (result) {
+          categoryLabelMap[result.cat] = result.labelId;
+        }
+      });
+    }
 
     await chrome.storage.local.set({ [CATEGORY_LABEL_MAP_KEY]: categoryLabelMap });
 
-    const emailLabelPairs = newEmails.map(e => ({ id: e.id, labelId: categoryLabelMap[e.category] })).filter(p => p.labelId);
+    const emailLabelPairs = newEmails
+      .map(e => ({ id: e.id, labelId: categoryLabelMap[e.category] }))
+      .filter(p => p.labelId);
 
-    await applyLabelsBatch(emailLabelPairs, token, 2);
+    if (emailLabelPairs.length) {
+      console.log(`Applying labels to ${emailLabelPairs.length} emails...`);
+      await applyLabelsBatch(emailLabelPairs, token, 10);
+    }
 
-    await chrome.storage.local.set({ [LABELED_EMAILS_KEY]: [...alreadyLabeled, ...newEmails.map(e => e.id)] });
+    await chrome.storage.local.set({ 
+      [LABELED_EMAILS_KEY]: [...alreadyLabeled, ...newEmails.map(e => e.id)] 
+    });
 
-    console.log(`Labeled ${newEmails.length} new emails.`);
+    console.log(`✅ Labeled ${newEmails.length} new emails.`);
   } catch (err) {
     console.error("Error in assignLabelsToAllEmails:", err);
   }
 }
 
-// Events
-chrome.runtime.onInstalled.addListener(() => fetchAndProcessEmails(true));
+// --- Events ---
+chrome.runtime.onInstalled.addListener(() => {
+  console.log("Extension installed - fetching emails...");
+  fetchAndProcessEmails(true);
+});
 
 chrome.runtime.onMessage.addListener((msg) => {
   if (!msg) return;
+  
   if (msg.action === "fetchEmails") {
     fetchAndProcessEmails(false).catch(console.error);
-    assignLabelsToAllEmails().catch(console.error);
   }
-  if (msg.action === "deleteExtensionLabels") getAuthToken().then(token => deleteAllExtensionLabels(token)).catch(console.error);
+  
+  if (msg.action === "deleteExtensionLabels") {
+    getAuthToken()
+      .then(token => deleteAllExtensionLabels(token))
+      .catch(console.error);
+  }
+  
+
 });
 
 chrome.action.onClicked.addListener(() => {
-  console.log("Extension clicked — use messages to trigger fetch/label");
-});
-
-// Listen for messages from content script
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "openDashboard") {
-    chrome.tabs.create({
-      url: chrome.runtime.getURL("dashboard/index.html")
-    });
-  }
+  console.log("Extension icon clicked");
 });
