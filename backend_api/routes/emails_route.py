@@ -45,7 +45,7 @@ async def receive_emails(emails: List[EmailInput]):
     print(f"Reclustered? {reclustered}")
 
     # Step 5: Generate cluster categories if reclustered
-    if reclustered:
+    if reclustered or not categorizer.cluster_names:
         print("\n--- Generating cluster category names ---")
         categorizer.generate_cluster_categories()
         print("Cluster names generated:")
