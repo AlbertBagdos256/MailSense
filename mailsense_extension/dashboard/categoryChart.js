@@ -12,10 +12,13 @@ function renderCategoryChart(data, selector) {
     }
 
     const container = document.querySelector(selector);
-    const width = container.clientWidth || 500;
-    const height = 500;
-    const chartHeight = 350;
-    const radius = Math.min(width, chartHeight) / 2 - 40;
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.parentElement.clientHeight - 100;
+
+    const margin = {top: 20, right: 20, bottom: 20, left: 20};
+    const width = containerWidth - margin.left - margin.right;
+    const height = Math.min(containerHeight, 800) - margin.top - margin.bottom;
+    const radius = Math.min(width, height) / 2.2;
 
     const svg = d3
         .select(selector)
@@ -26,13 +29,13 @@ function renderCategoryChart(data, selector) {
 
     const g = svg
         .append("g")
-        .attr("transform", `translate(${width / 2}, ${chartHeight / 2})`);
+        .attr("transform", `translate(${width / 2 + margin.left}, ${height / 2 + margin.top})`);
 
     const pie = d3.pie().value((d) => d.count);
 
     const arc = d3
         .arc()
-        .innerRadius(radius * 0.4)
+        .innerRadius(radius * 0.5)
         .outerRadius(radius);
 
     const colors = d3
@@ -83,7 +86,6 @@ function renderCategoryChart(data, selector) {
             hideTooltip();
         });
 
-
     const total = d3.sum(data, (d) => d.count);
 
     slices
@@ -111,46 +113,13 @@ function renderCategoryChart(data, selector) {
         .style("fill", "white")
         .style("pointer-events", "none");
 
-    const legendStartY = chartHeight + 30;
-    const itemsPerRow = Math.max(2, Math.floor(width / 150));
-    
-    const legend = svg
-        .append("g")
-        .attr("class", "legend")
-        .attr("transform", `translate(${width / 2}, ${legendStartY})`);
-
-    const legendItems = legend
-        .selectAll(".legend-item")
-        .data(data)
-        .enter()
-        .append("g")
-        .attr("class", "legend-item")
-        .attr("transform", (d, i) => {
-            const row = Math.floor(i / itemsPerRow);
-            const col = i % itemsPerRow;
-            const x = (col - itemsPerRow / 2) * 140;
-            const y = row * 25;
-            return `translate(${x}, ${y})`;
-        });
-
-    legendItems
-        .append("rect")
-        .attr("width", 15)
-        .attr("height", 15)
-        .attr("fill", (d) => colors(d.category))
-        .attr("rx", 2);
-
-    legendItems
-        .append("text")
-        .attr("x", 20)
-        .attr("y", 12)
-        .text((d) => `${d.category} (${d.count})`)
-        .style("font-size", "12px")
-        .style("fill", "#333");
+    svg.attr("width", "100%")
+       .attr("height", "100%")
+       .attr("viewBox", `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+       .attr("preserveAspectRatio", "xMidYMid meet");
 
     console.log("Category chart rendered successfully");
 }
-
 
 function showTooltip(event, text) {
     let tooltip = document.querySelector(".tooltip");

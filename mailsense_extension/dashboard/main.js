@@ -4,7 +4,9 @@ async function initializeDashboard() {
 
         clearError();
 
-        const emails = await fetchAllEmails();
+        const data = await fetchAllEmails();
+        const emails = data.emails || data;
+        const externalSpamCount = data.spamCount || 0;
 
         if (emails.length === 0) {
             showError("No emails found");
@@ -14,6 +16,8 @@ async function initializeDashboard() {
         console.log(`Loaded ${emails.length} emails`);
 
         const analytics = transformEmailsForAnalytics(emails);
+        
+        analytics.spamCount = analytics.spamCount || externalSpamCount;
 
         console.log("Analytics data:", analytics);
 
